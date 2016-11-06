@@ -4,16 +4,13 @@ import sbt._
 
 object VimInteraction {
 
-  lazy val vimServerName: String = sys.props.get("sbtquickfix.vim.servername").getOrElse("GVIM")
-  lazy val nvimSocketFile: String = sys.props.get("sbtquickfix.nvim.socket").getOrElse("/tmp/nvim.sock")
+  lazy val vimServerName: Option[String] = sys.props.get("sbtquickfix.vim.servername")
 
-  def call(vimExec: String, command: String): Int = vimExec match {
-    case "nvim" => Process(List("python", "-c", pyScript(command))).! // TODO revisit when neovim #1750 is resolved
-    case _      => Process(List(vimExec, "--servername", vimServerName, "--remote-send", s"<esc>:$command<cr>")).!
+  def call(vimExec: String, command: String): Int = {
+    val server: List[String] =
+      if(vimExec == "nvr") vimServerName.fold(List[String]()) { sn => List("--servername", sn) }
+      else List("--servername", vimServerName.fold("GVIM")(identity))
+    Process(List(vimExec) ++ server ++ List("--remote-send", s"<c-\\><c-n>:$command<cr>")).!
   }
 
-  private def pyScript(cmd: String) = 
-     s"""|from neovim import attach
-         |nvim = attach('socket', path='$nvimSocketFile')
-         |nvim.command('$cmd')""".stripMargin
 }

@@ -6,7 +6,7 @@ organization := "com.dscleaver.sbt"
 
 versionWithGit
 
-version := "0.4.2-SNAPSHOT"
+version := "0.6.1"
 
 git.baseVersion := "0.4.1"
 
